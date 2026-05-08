@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FaceSwap Vibe | 딥페이크 탐지기</title>
+    <style>
+        /* 1. 디자인 시스템 (토스 스타일 & 다크모드) */
+        :root {
+            --bg-color: #f2f4f6;
+            --card-bg: #ffffff;
+            --text-main: #191f28;
+            --text-sub: #4e5968;
+            --accent-color: #3182f6;
+            --border-radius: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme='dark'] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #f9fafb;
+            --text-sub: #adb5bd;
+            --accent-color: #589bff;
+        }
+
+        /* 2. 전체 레이아웃 */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: var(--transition);
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 500px;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+
+        .theme-toggle {
+            cursor: pointer;
+            background: var(--card-bg);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 15px;
+            color: var(--text-main);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+
+        /* 3. 위젯 카드 및 탭 */
+        .container { width: 100%; max-width: 450px; padding: 0 20px; box-sizing: border-box; }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            transition: var(--transition);
+        }
+
+        .tabs {
+            display: flex;
+            background-color: var(--bg-color);
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-sub);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* 4. 입력 요소 및 버튼 */
+        h2 { margin: 0 0 10px 0; font-size: 18px; font-weight: 700; }
+        p { color: var(--text-sub); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+
+        input[type="file"], input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.05);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            box-sizing: border-box;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        button.primary {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 18px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        button.primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+        /* 5. 결과 및 로딩 상태 */
+        #result-area { display: none; text-align: center; margin-top: 10px; }
+        .status-badge { display: inline-block; padding: 8px 16px; border-radius: 50px; font-weight: 700; margin-bottom: 15px; }
+        .match-true { background-color: #fee5e8; color: #f04452; }
+        .match-false { background-color: #e8f3ff; color: #3182f6; }
+
+        .loader {
+            display: none;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top: 3px solid var(--accent-color);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 0.8s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">FaceSwap Vibe</div>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙 모드 변경</button>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>피해자 얼굴 등록</h2>
+            <p>보호할 얼굴 사진을 업로드하여 데이터베이스에 등록합니다.</p>
+            <input type="text" id="reg-id" placeholder="등록할 ID (예: wonyoung_01)">
+            <input type="file" id="reg-file" accept="image/*">
+            <button class="primary" onclick="registerVictim()">데이터베이스에 저장</button>
+        </div>
+
+        <div class="card">
+            <h2>딥페이크 의심 사진 검사</h2>
+            <p>사진을 직접 올리거나 이미지 주소(URL)를 입력해 검사하세요.</p>
+
+            <div class="tabs">
+                <button id="btn-upload" class="tab-btn active" onclick="switchTab('upload')">직접 올리기</button>
+                <button id="btn-url" class="tab-btn" onclick="switchTab('url')">링크로 찾기</button>
+            </div>
+
+            <div id="tab-upload" class="tab-content active">
+                <input type="file" id="scan-file" accept="image/*">
+            </div>
+
+            <div id="tab-url" class="tab-content">
+                <input type="text" id="scan-url" placeholder="https://SNS-이미지-주소.jpg">
+            </div>
+
+            <button class="primary" onclick="scanImage()">지금 바로 검사하기</button>
+            
+            <div id="loader-container" style="display: none; text-align: center; margin: 20px 0;">
+                <div class="loader" style="display: block; margin: 0 auto;"></div>
+                <p id="loader-text" style="margin-top: 15px; font-weight: 600; color: var(--accent-color); font-size: 14px;">
+                    AI가 사진을 분석할 준비를 하고 있습니다...
+                </p>
+            </div>
+
+            <div id="result-area" class="card" style="margin-top:20px; background: rgba(128,128,128,0.05);">
+                <div id="status-badge" class="status-badge"></div>
+                <div id="result-text" style="font-size: 15px; font-weight: 600;"></div>
+                <div id="score-text" style="font-size: 13px; color: var(--text-sub); margin-top: 5px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 다크모드 및 탭 전환
+        let currentScanMethod = 'upload';
+        const API_BASE = "http://127.0.0.1:8000";
+
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            isDark ? body.removeAttribute('data-theme') : body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+        function switchTab(method) {
+            currentScanMethod = method;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.getElementById(`btn-${method}`).classList.add('active');
+            document.getElementById(`tab-${method}`).classList.add('active');
+        }
+
+        // 2. 피해자 등록 로직
+        async function registerVictim() {
+            const userId = document.getElementById('reg-id').value;
+            const fileInput = document.getElementById('reg-file');
+            if (!userId || !fileInput.files[0]) return alert("ID와 사진을 모두 입력해주세요!");
+
+            const formData = new FormData();
+            formData.append('user_id', userId);
+            formData.append('image', fileInput.files[0]);
+
+            try {
+                const res = await fetch(`${API_BASE}/register_victim`, { method: 'POST', body: formData });
+                const data = await res.json();
+                if (res.ok) alert(`등록 성공! (ID: ${data.user_id})`);
+                else alert(`실패: ${data.detail.message}`);
+            } catch (e) { alert("서버 연결 실패"); }
+        }
+
+        // 3. 하이브리드 스캔 로직
+        // 3. 하이브리드 스캔 로직 (디테일 UI 적용 버전)
+        let loadingInterval; // 로딩 텍스트 타이머 변수
+
+        async function scanImage() {
+            const fileInput = document.getElementById('scan-file');
+            const urlInput = document.getElementById('scan-url');
+            const resultArea = document.getElementById('result-area');
+            const loaderContainer = document.getElementById('loader-container');
+            const loaderText = document.getElementById('loader-text');
+            
+            const formData = new FormData();
+            if (currentScanMethod === 'upload') {
+                if (!fileInput.files[0]) return alert("사진을 선택해주세요!");
+                formData.append('image', fileInput.files[0]);
+            } else {
+                if (!urlInput.value) return alert("이미지 URL을 입력해주세요!");
+                formData.append('url', urlInput.value);
+            }
+
+            // 🌟 1. 로딩 시작 및 동적 텍스트 애니메이션
+            resultArea.style.display = 'none';
+            loaderContainer.style.display = 'block';
+            
+            const messages = [
+                "AI 모델을 불러오는 중...",
+                "이미지에서 얼굴 특징점을 추출하는 중...",
+                "Pinecone 데이터베이스와 대조하는 중...",
+                "거의 다 되었습니다. 결과를 계산 중..."
+            ];
+            let msgIndex = 0;
+            loaderText.innerText = messages[0];
+            
+            loadingInterval = setInterval(() => {
+                msgIndex = (msgIndex + 1) % messages.length;
+                loaderText.innerText = messages[msgIndex];
+            }, 1500); // 1.5초마다 멘트 변경
+
+            try {
+                const res = await fetch(`${API_BASE}/scan_image`, { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                // 🌟 2. 로딩 종료
+                clearInterval(loadingInterval);
+                loaderContainer.style.display = 'none';
+                resultArea.style.display = 'block';
+
+                const badge = document.getElementById('status-badge');
+                const text = document.getElementById('result-text');
+                const scoreDisplay = document.getElementById('score-text');
+
+                // 🌟 3. 에러 처리 (얼굴을 못 찾았을 때 등)
+                if (!res.ok) {
+                    badge.innerText = "⚠️ 분석 실패";
+                    badge.style.backgroundColor = "#fff3cd";
+                    badge.style.color = "#856404";
+                    text.innerText = data.detail.message || "알 수 없는 오류가 발생했습니다.";
+                    scoreDisplay.innerText = "다른 사진으로 다시 시도해 주세요.";
+                    return; // 성공 로직 실행 안 하고 여기서 끝냄
+                }
+
+                // 🌟 4. 정상 처리 (매칭 성공/실패)
+                if (data.matched) {
+                    badge.innerText = "🚨 위험: 일치 발견";
+                    badge.style.backgroundColor = "#fee5e8"; // 기존 스타일 복구
+                    badge.style.color = "#f04452";
+                    text.innerText = `등록된 피해자(${data.matches[0].id})와 유사합니다.`;
+                    scoreDisplay.innerText = `분석 신뢰도: ${(data.matches[0].score * 100).toFixed(2)}%`;
+                } else {
+                    badge.innerText = "✅ 안전: 일치 없음";
+                    badge.style.backgroundColor = "#e8f3ff"; // 기존 스타일 복구
+                    badge.style.color = "#3182f6";
+                    text.innerText = "데이터베이스에 등록된 인물이 아닙니다.";
+                    scoreDisplay.innerText = "";
+                }
+            } catch (e) {
+                clearInterval(loadingInterval);
+                loaderContainer.style.display = 'none';
+                alert("서버와 통신 중 문제가 발생했습니다.");
+            }
+        }
+    </script>
+</body>
+</html>
