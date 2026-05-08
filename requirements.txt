@@ -3,6 +3,4 @@ uvicorn
 python-multipart
 requests
 pinecone-client
-tf-keras
-tensorflow-cpu
 deepface
