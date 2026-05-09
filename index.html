@@ -412,22 +412,49 @@
             text-align: center;
         }
 
+        .report-paper .rp-docno {
+            font-size: 12px;
+            color: rgba(0,0,0,0.55);
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
         .report-paper .rp-section {
-            border-top: 1px solid rgba(0,0,0,0.10);
-            padding-top: 12px;
-            margin-top: 12px;
+            margin-top: 14px;
+        }
+
+        .report-paper .rp-section-title {
+            font-size: 13px;
+            font-weight: 900;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.08);
+            letter-spacing: -0.1px;
+        }
+
+        .report-paper .rp-table {
+            margin-top: 10px;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 12px;
+            overflow: hidden;
         }
 
         .report-paper .rp-row {
             display: flex;
             gap: 10px;
-            padding: 6px 0;
+            padding: 10px 12px;
             font-size: 14px;
             line-height: 1.45;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+
+        .report-paper .rp-row:last-child {
+            border-bottom: none;
         }
 
         .report-paper .rp-label {
-            width: 160px;
+            width: 190px;
             font-weight: 900;
             color: #111111;
             flex: 0 0 auto;
@@ -439,14 +466,38 @@
             word-break: break-word;
         }
 
+        .report-paper .rp-exif {
+            margin-top: 10px;
+            padding: 12px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.08);
+            background: rgba(0,0,0,0.02);
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: normal;
+        }
+
         .report-paper .rp-conclusion {
             margin-top: 10px;
-            padding: 12px 14px;
+            padding: 14px 14px;
             border-radius: 12px;
-            background: rgba(240,68,82,0.08);
-            border: 1px solid rgba(240,68,82,0.25);
+            background: rgba(240,68,82,0.06);
+            border: 1px solid rgba(240,68,82,0.30);
+            color: #7a271a;
+        }
+
+        .report-paper .rp-conclusion-title {
+            font-size: 14px;
             font-weight: 900;
-            color: #b42318;
+            margin-bottom: 6px;
+            letter-spacing: -0.1px;
+        }
+
+        .report-paper .rp-conclusion-text {
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.55;
+            color: #7a271a;
         }
 
         #btn-download-report {
@@ -535,37 +586,61 @@
             </div>
 
             <div class="report-paper" id="report-paper">
-                <h1>분석 리포트</h1>
+                <div class="rp-docno">문서 번호: <span id="rp-id"></span></div>
+                <h1>디지털 이미지 딥페이크 분석 리포트</h1>
 
                 <div class="rp-section">
-                    <div class="rp-row">
-                        <div class="rp-label">분석 일시</div>
-                        <div class="rp-value" id="rp-time">-</div>
-                    </div>
-                    <div class="rp-row">
-                        <div class="rp-label">대상자 ID</div>
-                        <div class="rp-value" id="rp-target">-</div>
-                    </div>
-                    <div class="rp-row">
-                        <div class="rp-label">일치율(신뢰도)</div>
-                        <div class="rp-value" id="rp-score">-</div>
+                    <div class="rp-section-title">[1. 분석 기본 정보]</div>
+                    <div class="rp-table">
+                        <div class="rp-row">
+                            <div class="rp-label">분석 일시</div>
+                            <div class="rp-value" id="rp-time">-</div>
+                        </div>
+                        <div class="rp-row">
+                            <div class="rp-label">대상자 ID</div>
+                            <div class="rp-value" id="rp-target">-</div>
+                        </div>
+                        <div class="rp-row">
+                            <div class="rp-label">분석 엔진</div>
+                            <div class="rp-value" id="rp-engine">-</div>
+                        </div>
+                        <div class="rp-row">
+                            <div class="rp-label">검출 모델</div>
+                            <div class="rp-value" id="rp-model">-</div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="rp-section">
-                    <div class="rp-row">
-                        <div class="rp-label">메타데이터 분석 결과</div>
-                        <div class="rp-value" id="rp-exif">-</div>
+                    <div class="rp-section-title">[2. AI 시각 특징점 분석 결과]</div>
+                    <div class="rp-table">
+                        <div class="rp-row">
+                            <div class="rp-label">얼굴 랜드마크 매칭 여부</div>
+                            <div class="rp-value" id="rp-landmark">-</div>
+                        </div>
+                        <div class="rp-row">
+                            <div class="rp-label">유사도 판별 방식</div>
+                            <div class="rp-value" id="rp-method">-</div>
+                        </div>
+                        <div class="rp-row">
+                            <div class="rp-label">최종 일치율(신뢰도)</div>
+                            <div class="rp-value" id="rp-score">-</div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="rp-section">
-                    <div class="rp-row">
-                        <div class="rp-label">결론</div>
-                        <div class="rp-value">딥페이크 도용 의심</div>
-                    </div>
+                    <div class="rp-section-title">[3. 이미지 메타데이터(EXIF) 포렌식]</div>
+                    <div class="rp-exif" id="rp-exif">-</div>
+                </div>
+
+                <div class="rp-section">
+                    <div class="rp-section-title">[결론]</div>
                     <div class="rp-conclusion" id="rp-conclusion">
-                        본 리포트는 AI 분석 결과를 기반으로 생성된 참고 자료입니다. 필요 시 원본 증거(이미지, URL, 게시물 정보)와 함께 제출하세요.
+                        <div class="rp-conclusion-title">딥페이크 도용 의심</div>
+                        <div class="rp-conclusion-text">
+                            본 분석은 첨단 AI 얼굴 인식 알고리즘을 기반으로 수행되었으며, 수사 기관 제출용 초기 참고 자료로 활용 가능합니다.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -686,7 +761,19 @@
                 return;
             }
 
-            const nowText = new Date().toLocaleString();
+            const now = new Date();
+            const nowText = now.toLocaleString();
+
+            // 리포트를 열 때마다 랜덤한 문서 번호를 생성해요 (예: FSV-20260510-A1B2C3)
+            const y = String(now.getFullYear());
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const datePart = `${y}${m}${d}`;
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 헷갈리는 문자(I,O,1,0)는 제외해요
+            let rand = '';
+            for (let i = 0; i < 6; i++) rand += chars[Math.floor(Math.random() * chars.length)];
+            const reportId = `FSV-${datePart}-${rand}`;
+
             const exifBox = document.getElementById('exif-result');
             let exifText = "메타데이터 분석 결과를 확인할 수 없습니다.";
 
@@ -706,9 +793,15 @@
                 }
             }
 
-            // 문서 템플릿에 값을 채워요
+            // 문서 템플릿에 값을 채워요 (고정 텍스트는 하드코딩)
+            document.getElementById('rp-id').textContent = reportId;
             document.getElementById('rp-time').textContent = nowText;
             document.getElementById('rp-target').textContent = lastReportData.targetId || '-';
+            document.getElementById('rp-engine').textContent = "FaceSwap Vibe Engine v1.0";
+            document.getElementById('rp-model').textContent = "DeepFace - Facenet512 (512-dimensional vector)";
+            document.getElementById('rp-landmark').textContent = "탐지됨";
+            document.getElementById('rp-method').textContent = "Pinecone Vector DB - Cosine Similarity";
+
             document.getElementById('rp-score').textContent =
                 (typeof lastReportData.score === 'number')
                     ? `${(lastReportData.score * 100).toFixed(2)}%`
