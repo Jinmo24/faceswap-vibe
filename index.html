@@ -350,6 +350,130 @@
 
         .danger-btn:hover { filter: brightness(0.98); transform: translateY(-1px); }
 
+        /* 9. Architecture 탭 (Tech Stack + Data Flow) */
+        .arch-section { margin-top: 10px; }
+
+        .arch-title {
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: -0.1px;
+            margin: 0 0 10px 0;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .tech-card {
+            border-radius: 16px;
+            padding: 14px 14px;
+            border: 1px solid rgba(49,130,246,0.12);
+            background: rgba(49,130,246,0.05);
+        }
+
+        [data-theme='dark'] .tech-card {
+            border: 1px solid rgba(88,155,255,0.18);
+            background: rgba(88,155,255,0.10);
+        }
+
+        .tech-k {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--accent-color);
+            margin-bottom: 6px;
+        }
+
+        .tech-v {
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .tech-d {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-sub);
+            line-height: 1.45;
+        }
+
+        .flow-timeline {
+            position: relative;
+            margin-top: 10px;
+            padding-left: 14px;
+        }
+
+        .flow-step {
+            position: relative;
+            display: flex;
+            gap: 12px;
+            padding: 12px 0 12px 0;
+        }
+
+        .flow-step::before {
+            content: "";
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(0,0,0,0.08);
+        }
+
+        [data-theme='dark'] .flow-step::before {
+            background: rgba(255,255,255,0.10);
+        }
+
+        .flow-step:last-child::before {
+            bottom: 50%;
+        }
+
+        .flow-dot {
+            position: relative;
+            z-index: 1;
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            background: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(49,130,246,0.12);
+            flex: 0 0 auto;
+            margin-left: -1px;
+            margin-top: 2px;
+        }
+
+        [data-theme='dark'] .flow-dot {
+            box-shadow: 0 0 0 4px rgba(88,155,255,0.16);
+        }
+
+        .flow-content {
+            background: rgba(128,128,128,0.05);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 16px;
+            padding: 12px 12px;
+            flex: 1;
+        }
+
+        [data-theme='dark'] .flow-content {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .flow-name {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--accent-color);
+            margin-bottom: 4px;
+        }
+
+        .flow-desc {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.45;
+        }
+
         /* 8. 신고용 리포트 모달 */
         #report-modal {
             position: fixed;
@@ -533,6 +657,7 @@
             <div class="tabs">
                 <button id="btn-upload" class="tab-btn active" onclick="switchTab('upload')">직접 올리기</button>
                 <button id="btn-url" class="tab-btn" onclick="switchTab('url')">링크로 찾기</button>
+                <button id="btn-architecture" class="tab-btn" onclick="switchTab('architecture')">시스템 구조</button>
             </div>
 
             <div id="tab-upload" class="tab-content active">
@@ -542,6 +667,71 @@
 
             <div id="tab-url" class="tab-content">
                 <input type="text" id="scan-url" placeholder="https://SNS-이미지-주소.jpg">
+            </div>
+
+            <div id="tab-architecture" class="tab-content">
+                <h2 style="margin-top: 0;">시스템 구조(Architecture)</h2>
+                <p style="margin-bottom: 14px;">프로젝트의 기술 스택과 데이터 처리 흐름을 한눈에 확인하세요.</p>
+
+                <div class="arch-section">
+                    <div class="arch-title">[1. 기술 스택 (Tech Stack)]</div>
+                    <div class="tech-grid">
+                        <div class="tech-card">
+                            <div class="tech-k">Frontend</div>
+                            <div class="tech-v">HTML/JS, GitHub Pages</div>
+                            <div class="tech-d">UI 및 정적 호스팅</div>
+                        </div>
+                        <div class="tech-card">
+                            <div class="tech-k">Backend API</div>
+                            <div class="tech-v">FastAPI, Python</div>
+                            <div class="tech-d">REST API, 무중단 라우팅</div>
+                        </div>
+                        <div class="tech-card">
+                            <div class="tech-k">AI Model</div>
+                            <div class="tech-v">DeepFace, TensorFlow</div>
+                            <div class="tech-d">Facenet512 512차원 벡터 추출</div>
+                        </div>
+                        <div class="tech-card">
+                            <div class="tech-k">Vector DB</div>
+                            <div class="tech-v">Pinecone</div>
+                            <div class="tech-d">코사인 유사도 기반 초고속 특징점 검색</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arch-section" style="margin-top: 16px;">
+                    <div class="arch-title">[2. 데이터 흐름도 (Data Flow)]</div>
+                    <div class="flow-timeline">
+                        <div class="flow-step">
+                            <div class="flow-dot"></div>
+                            <div class="flow-content">
+                                <div class="flow-name">Step 1</div>
+                                <div class="flow-desc">사용자 이미지 업로드 & 프론트엔드 메타데이터(EXIF) 1차 검증</div>
+                            </div>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-dot"></div>
+                            <div class="flow-content">
+                                <div class="flow-name">Step 2</div>
+                                <div class="flow-desc">FastAPI 서버로 이미지 전송 및 DeepFace 랜드마크 추출</div>
+                            </div>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-dot"></div>
+                            <div class="flow-content">
+                                <div class="flow-name">Step 3</div>
+                                <div class="flow-desc">Pinecone DB에 512차원 벡터 쿼리 및 코사인 유사도(Cosine Similarity) 대조</div>
+                            </div>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-dot"></div>
+                            <div class="flow-content">
+                                <div class="flow-name">Step 4</div>
+                                <div class="flow-desc">매칭 결과 반환 및 브라우저 기반 포렌식 리포트(PDF/Image) 생성</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <button class="primary" onclick="scanImage()">지금 바로 검사하기</button>
@@ -840,7 +1030,8 @@
         }
 
         function switchTab(method) {
-            currentScanMethod = method;
+            // 스캔 방식은 upload/url에서만 바꿔요. (architecture 탭은 UI 설명용이라 스캔 로직과 분리)
+            if (method === 'upload' || method === 'url') currentScanMethod = method;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
