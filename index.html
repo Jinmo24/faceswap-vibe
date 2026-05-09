@@ -42,7 +42,7 @@
 
         header {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             padding: 40px 20px;
             display: flex;
             justify-content: space-between;
@@ -50,11 +50,11 @@
             box-sizing: border-box;
         }
 
-        .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; white-space: nowrap; }
 
         .header-actions {
             display: flex;
-            gap: 10px;
+            gap: 6px;
             align-items: center;
         }
 
@@ -62,10 +62,12 @@
             cursor: pointer;
             background: var(--card-bg);
             border: none;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 15px;
             color: var(--text-main);
             font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             transition: var(--transition);
         }
@@ -74,10 +76,12 @@
             cursor: pointer;
             background: var(--card-bg);
             border: none;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 15px;
             color: var(--text-main);
             font-weight: 700;
+            font-size: 13px;
+            white-space: nowrap;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             transition: var(--transition);
         }
@@ -86,10 +90,12 @@
             cursor: pointer;
             background: var(--card-bg);
             border: none;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 15px;
             color: var(--text-main);
             font-weight: 700;
+            font-size: 13px;
+            white-space: nowrap;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             transition: var(--transition);
         }
@@ -189,6 +195,7 @@
         #exif-result {
             display: none; /* 처음에는 숨겨둬요 */
             margin-top: 12px;
+            margin-bottom: 20px;
             padding: 16px;
             border-radius: 16px;
             border: 1px solid rgba(0,0,0,0.06);
