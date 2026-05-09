@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FaceSwap Vibe | 딥페이크 탐지기</title>
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <style>
         /* 1. 디자인 시스템 (토스 스타일 & 다크모드) */
         :root {
@@ -153,6 +154,36 @@
             margin: 20px auto;
         }
 
+        /* 6. EXIF(메타데이터) 분석 결과 카드 */
+        #exif-result {
+            display: none; /* 처음에는 숨겨둬요 */
+            margin-top: 12px;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(0,0,0,0.06);
+            background: rgba(49, 130, 246, 0.08);
+        }
+
+        #exif-result .exif-title {
+            font-size: 14px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+        }
+
+        #exif-result ul {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--text-main);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        #exif-result .exif-hint {
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -183,6 +214,7 @@
 
             <div id="tab-upload" class="tab-content active">
                 <input type="file" id="scan-file" accept="image/*">
+                <div id="exif-result"></div>
             </div>
 
             <div id="tab-url" class="tab-content">
@@ -233,7 +265,15 @@
         async function registerVictim() {
             const userId = document.getElementById('reg-id').value;
             const fileInput = document.getElementById('reg-file');
+            
             if (!userId || !fileInput.files[0]) return alert("ID와 사진을 모두 입력해주세요!");
+
+            // 🌟 여기에 영문/숫자 검사 로직 추가!
+            const englishOnly = /^[A-Za-z0-9\s-_]+$/;
+            if (!englishOnly.test(userId)) {
+                alert("죄송합니다. 피해자 이름(ID)은 영문(English)과 숫자로만 등록 가능합니다!");
+                return; 
+            }
 
             const formData = new FormData();
             formData.append('user_id', userId);
@@ -328,6 +368,96 @@
                 alert("서버와 통신 중 문제가 발생했습니다.");
             }
         }
+
+        // 4. 메타데이터(EXIF) 분석 로직 (브라우저에서 즉시 실행, 백엔드 수정 없음)
+        (function setupExifAnalyzer() {
+            const fileInput = document.getElementById('scan-file');
+            const exifBox = document.getElementById('exif-result');
+
+            if (!fileInput || !exifBox) return; // 요소가 없으면 아무 것도 하지 않아요
+
+            function clearAndHide() {
+                exifBox.style.display = 'none';
+                exifBox.innerHTML = '';
+            }
+
+            function setBoxStyle(ok) {
+                // “원본 데이터 존재” 느낌: 옅은 파란/초록 계열
+                // “삭제됨 경고” 느낌: 옅은 붉은 계열
+                exifBox.style.background = ok ? 'rgba(34, 197, 94, 0.10)' : 'rgba(240, 68, 82, 0.10)';
+                exifBox.style.borderColor = ok ? 'rgba(34, 197, 94, 0.22)' : 'rgba(240, 68, 82, 0.22)';
+            }
+
+            function appendText(el, text) {
+                el.textContent = text;
+                return el;
+            }
+
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files && fileInput.files[0];
+                if (!file) return clearAndHide(); // 파일 선택이 해제되면 결과도 숨겨요
+
+                // EXIF.getData는 비동기 콜백에서 태그를 읽을 수 있게 해줘요
+                EXIF.getData(file, function () {
+                    // 중요 메타데이터 4가지를 추출해요
+                    const make = (EXIF.getTag(this, 'Make') || '').toString().trim();
+                    const model = (EXIF.getTag(this, 'Model') || '').toString().trim();
+                    const software = (EXIF.getTag(this, 'Software') || '').toString().trim();
+                    const dateTimeOriginal = (EXIF.getTag(this, 'DateTimeOriginal') || '').toString().trim();
+
+                    const hasAny =
+                        Boolean(make) ||
+                        Boolean(model) ||
+                        Boolean(software) ||
+                        Boolean(dateTimeOriginal);
+
+                    exifBox.innerHTML = ''; // 이전 결과를 지워요
+                    exifBox.style.display = 'block'; // 결과 박스를 보여줘요
+                    setBoxStyle(hasAny); // 상태에 맞게 배경색을 바꿔요
+
+                    const title = document.createElement('div');
+                    title.className = 'exif-title';
+                    appendText(title, '메타데이터(EXIF) 분석 결과');
+                    exifBox.appendChild(title);
+
+                    if (hasAny) {
+                        const ul = document.createElement('ul');
+
+                        const rows = [
+                            ['카메라 제조사(Make)', make],
+                            ['모델(Model)', model],
+                            ['소프트웨어(Software)', software],
+                            ['촬영 일시(DateTimeOriginal)', dateTimeOriginal],
+                        ];
+
+                        rows.forEach(([label, value]) => {
+                            if (!value) return; // 값이 비어있으면 해당 항목은 숨겨요
+                            const li = document.createElement('li');
+                            li.textContent = `${label}: ${value}`;
+                            ul.appendChild(li);
+                        });
+
+                        exifBox.appendChild(ul);
+
+                        const hint = document.createElement('div');
+                        hint.className = 'exif-hint';
+                        hint.style.color = '#16a34a';
+                        appendText(hint, '원본 데이터가 존재합니다.');
+                        exifBox.appendChild(hint);
+                    } else {
+                        const warn = document.createElement('div');
+                        warn.className = 'exif-hint';
+                        warn.style.color = '#f04452';
+                        warn.style.fontWeight = '800';
+                        appendText(
+                            warn,
+                            '⚠️ 경고: 메타데이터가 삭제되었습니다. (포토샵 등 편집 프로그램을 거쳤거나 딥페이크 합성 이미지일 확률이 높습니다.)'
+                        );
+                        exifBox.appendChild(warn);
+                    }
+                });
+            });
+        })();
     </script>
 </body>
 </html>
