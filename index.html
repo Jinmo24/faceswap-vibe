@@ -51,6 +51,12 @@
 
         .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
 
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
         .theme-toggle {
             cursor: pointer;
             background: var(--card-bg);
@@ -59,6 +65,18 @@
             border-radius: 15px;
             color: var(--text-main);
             font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+
+        .history-toggle {
+            cursor: pointer;
+            background: var(--card-bg);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 15px;
+            color: var(--text-main);
+            font-weight: 700;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             transition: var(--transition);
         }
@@ -184,6 +202,153 @@
             font-weight: 700;
         }
 
+        /* 7. 최근 검사 기록 사이드바(오버레이) */
+        #history-dim {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            z-index: 1000;
+        }
+
+        #history-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: min(360px, 92vw);
+            background: var(--card-bg);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #history-sidebar.open { transform: translateX(0); }
+
+        #history-sidebar .hs-header {
+            padding: 18px 18px 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+
+        [data-theme='dark'] #history-sidebar .hs-header {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        #history-sidebar .hs-title {
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: -0.2px;
+            margin: 0;
+        }
+
+        #history-sidebar .hs-close {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        #history-sidebar .hs-close:hover { background: rgba(0,0,0,0.06); }
+        [data-theme='dark'] #history-sidebar .hs-close:hover { background: rgba(255,255,255,0.08); }
+
+        #history-sidebar .hs-body {
+            padding: 16px 18px;
+            overflow: auto;
+            flex: 1;
+        }
+
+        #history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            border-radius: 16px;
+            padding: 12px 12px;
+            border: 1px solid rgba(0,0,0,0.06);
+            background: rgba(128,128,128,0.05);
+        }
+
+        [data-theme='dark'] .history-item {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .history-item .hi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .history-item .hi-time {
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 700;
+        }
+
+        .history-item .hi-badge {
+            font-size: 12px;
+            font-weight: 900;
+            padding: 6px 10px;
+            border-radius: 999px;
+        }
+
+        .hi-badge.safe { background: rgba(49,130,246,0.12); color: #3182f6; }
+        .hi-badge.danger { background: rgba(240,68,82,0.12); color: #f04452; }
+        .hi-badge.error { background: rgba(255,193,7,0.18); color: #856404; }
+
+        .history-item .hi-msg {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .history-item .hi-sub {
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        #history-sidebar .hs-footer {
+            padding: 12px 18px 18px 18px;
+            border-top: 1px solid rgba(0,0,0,0.06);
+        }
+
+        [data-theme='dark'] #history-sidebar .hs-footer {
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .danger-btn {
+            width: 100%;
+            padding: 12px 14px;
+            border: none;
+            border-radius: 14px;
+            background: rgba(240,68,82,0.12);
+            color: #f04452;
+            font-weight: 900;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .danger-btn:hover { filter: brightness(0.98); transform: translateY(-1px); }
+
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -191,7 +356,10 @@
 
     <header>
         <div class="logo">FaceSwap Vibe</div>
-        <button class="theme-toggle" onclick="toggleTheme()">🌙 모드 변경</button>
+        <div class="header-actions">
+            <button class="history-toggle" onclick="openHistory()">📜 기록 보기</button>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 모드 변경</button>
+        </div>
     </header>
 
     <div class="container">
@@ -238,6 +406,21 @@
         </div>
     </div>
 
+    <!-- 최근 검사 기록 사이드바(오버레이) -->
+    <div id="history-dim" onclick="closeHistory()"></div>
+    <div id="history-sidebar" aria-hidden="true">
+        <div class="hs-header">
+            <h3 class="hs-title">최근 검사 기록</h3>
+            <button class="hs-close" onclick="closeHistory()" aria-label="닫기">✕</button>
+        </div>
+        <div class="hs-body">
+            <div id="history-list"></div>
+        </div>
+        <div class="hs-footer">
+            <button class="danger-btn" onclick="clearHistory()">기록 전체 삭제</button>
+        </div>
+    </div>
+
     <script>
         // 1. 다크모드 및 탭 전환
         let currentScanMethod = 'upload';
@@ -251,6 +434,87 @@
         }
 
         if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+        // 1-1. 최근 검사 기록(localStorage) 로직
+        const HISTORY_KEY = 'scanHistory';
+
+        function readHistory() {
+            try {
+                const raw = localStorage.getItem(HISTORY_KEY);
+                const arr = raw ? JSON.parse(raw) : [];
+                return Array.isArray(arr) ? arr : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function writeHistory(items) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
+        }
+
+        function addHistoryEntry(entry) {
+            const items = readHistory();
+            items.unshift(entry);
+            writeHistory(items.slice(0, 50));
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            if (!list) return;
+
+            const items = readHistory();
+            if (!items.length) {
+                list.innerHTML = `
+                    <div class="history-item">
+                        <div class="hi-msg">아직 검사 기록이 없습니다.</div>
+                        <div class="hi-sub">사진을 검사하면 결과가 여기에 저장됩니다.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = items.map((it) => {
+                const badgeClass = it.status === 'danger' ? 'danger' : (it.status === 'safe' ? 'safe' : 'error');
+                const badgeText = it.status === 'danger' ? '🚨 위험' : (it.status === 'safe' ? '✅ 안전' : '⚠️ 오류');
+                const scoreText = (typeof it.score === 'number') ? `${(it.score * 100).toFixed(2)}%` : '';
+                const methodText = it.method === 'url' ? 'URL' : '업로드';
+                const safeMsg = (it.message || '').toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return `
+                    <div class="history-item">
+                        <div class="hi-top">
+                            <div class="hi-time">${it.time || ''}</div>
+                            <div class="hi-badge ${badgeClass}">${badgeText}</div>
+                        </div>
+                        <div class="hi-msg">${safeMsg}</div>
+                        <div class="hi-sub">방식: ${methodText}${scoreText ? ` · 신뢰도: ${scoreText}` : ''}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openHistory() {
+            const dim = document.getElementById('history-dim');
+            const sidebar = document.getElementById('history-sidebar');
+            if (!dim || !sidebar) return;
+            renderHistory();
+            dim.style.display = 'block';
+            sidebar.classList.add('open');
+            sidebar.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeHistory() {
+            const dim = document.getElementById('history-dim');
+            const sidebar = document.getElementById('history-sidebar');
+            if (!dim || !sidebar) return;
+            sidebar.classList.remove('open');
+            sidebar.setAttribute('aria-hidden', 'true');
+            setTimeout(() => { dim.style.display = 'none'; }, 180);
+        }
+
+        function clearHistory() {
+            localStorage.removeItem(HISTORY_KEY);
+            renderHistory();
+        }
 
         function switchTab(method) {
             currentScanMethod = method;
@@ -345,6 +609,15 @@
                     badge.style.color = "#856404";
                     text.innerText = data.detail.message || "알 수 없는 오류가 발생했습니다.";
                     scoreDisplay.innerText = "다른 사진으로 다시 시도해 주세요.";
+                    
+                    // ✅ 결과 표시 직후: 검사 기록 저장(에러)
+                    addHistoryEntry({
+                        time: new Date().toLocaleString(),
+                        method: currentScanMethod,
+                        status: 'error',
+                        score: null,
+                        message: data.detail.message || "알 수 없는 오류가 발생했습니다."
+                    });
                     return; // 성공 로직 실행 안 하고 여기서 끝냄
                 }
 
@@ -355,17 +628,44 @@
                     badge.style.color = "#f04452";
                     text.innerText = `등록된 피해자(${data.matches[0].id})와 유사합니다.`;
                     scoreDisplay.innerText = `분석 신뢰도: ${(data.matches[0].score * 100).toFixed(2)}%`;
+
+                    // ✅ 결과 표시 직후: 검사 기록 저장(위험)
+                    addHistoryEntry({
+                        time: new Date().toLocaleString(),
+                        method: currentScanMethod,
+                        status: 'danger',
+                        score: data.matches && data.matches[0] ? data.matches[0].score : null,
+                        message: `등록된 피해자(${data.matches[0].id})와 유사합니다.`
+                    });
                 } else {
                     badge.innerText = "✅ 안전: 일치 없음";
                     badge.style.backgroundColor = "#e8f3ff"; // 기존 스타일 복구
                     badge.style.color = "#3182f6";
                     text.innerText = "데이터베이스에 등록된 인물이 아닙니다.";
                     scoreDisplay.innerText = "";
+
+                    // ✅ 결과 표시 직후: 검사 기록 저장(안전)
+                    addHistoryEntry({
+                        time: new Date().toLocaleString(),
+                        method: currentScanMethod,
+                        status: 'safe',
+                        score: null,
+                        message: "데이터베이스에 등록된 인물이 아닙니다."
+                    });
                 }
             } catch (e) {
                 clearInterval(loadingInterval);
                 loaderContainer.style.display = 'none';
                 alert("서버와 통신 중 문제가 발생했습니다.");
+
+                // ✅ 경고 표시 직후: 검사 기록 저장(통신 오류)
+                addHistoryEntry({
+                    time: new Date().toLocaleString(),
+                    method: currentScanMethod,
+                    status: 'error',
+                    score: null,
+                    message: "서버와 통신 중 문제가 발생했습니다."
+                });
             }
         }
 
