@@ -82,6 +82,18 @@
             transition: var(--transition);
         }
 
+        .arch-toggle {
+            cursor: pointer;
+            background: var(--card-bg);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 15px;
+            color: var(--text-main);
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+
         /* 3. 위젯 카드 및 탭 */
         .container { width: 100%; max-width: 450px; padding: 0 20px; box-sizing: border-box; }
 
@@ -212,6 +224,14 @@
             z-index: 1000;
         }
 
+        #arch-dim {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            z-index: 1000;
+        }
+
         #history-sidebar {
             position: fixed;
             top: 0;
@@ -228,6 +248,63 @@
         }
 
         #history-sidebar.open { transform: translateX(0); }
+
+        #arch-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: min(360px, 92vw);
+            background: var(--card-bg);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.15);
+            transform: translateX(-100%);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #arch-sidebar.open { transform: translateX(0); }
+
+        #arch-sidebar .as-header {
+            padding: 18px 18px 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+
+        [data-theme='dark'] #arch-sidebar .as-header {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        #arch-sidebar .as-title {
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: -0.2px;
+            margin: 0;
+        }
+
+        #arch-sidebar .as-close {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        #arch-sidebar .as-close:hover { background: rgba(0,0,0,0.06); }
+        [data-theme='dark'] #arch-sidebar .as-close:hover { background: rgba(255,255,255,0.08); }
+
+        #arch-sidebar .as-body {
+            padding: 16px 18px;
+            overflow: auto;
+            flex: 1;
+        }
 
         #history-sidebar .hs-header {
             padding: 18px 18px 10px 18px;
@@ -636,6 +713,7 @@
     <header>
         <div class="logo">FaceSwap Vibe</div>
         <div class="header-actions">
+            <button class="arch-toggle" onclick="openArch()">⚙️ 시스템 구조</button>
             <button class="history-toggle" onclick="openHistory()">📜 기록 보기</button>
             <button class="theme-toggle" onclick="toggleTheme()">🌙 모드 변경</button>
         </div>
@@ -657,7 +735,6 @@
             <div class="tabs">
                 <button id="btn-upload" class="tab-btn active" onclick="switchTab('upload')">직접 올리기</button>
                 <button id="btn-url" class="tab-btn" onclick="switchTab('url')">링크로 찾기</button>
-                <button id="btn-architecture" class="tab-btn" onclick="switchTab('architecture')">시스템 구조</button>
             </div>
 
             <div id="tab-upload" class="tab-content active">
@@ -670,68 +747,7 @@
             </div>
 
             <div id="tab-architecture" class="tab-content">
-                <h2 style="margin-top: 0;">시스템 구조(Architecture)</h2>
-                <p style="margin-bottom: 14px;">프로젝트의 기술 스택과 데이터 처리 흐름을 한눈에 확인하세요.</p>
-
-                <div class="arch-section">
-                    <div class="arch-title">[1. 기술 스택 (Tech Stack)]</div>
-                    <div class="tech-grid">
-                        <div class="tech-card">
-                            <div class="tech-k">Frontend</div>
-                            <div class="tech-v">HTML/JS, GitHub Pages</div>
-                            <div class="tech-d">UI 및 정적 호스팅</div>
-                        </div>
-                        <div class="tech-card">
-                            <div class="tech-k">Backend API</div>
-                            <div class="tech-v">FastAPI, Python</div>
-                            <div class="tech-d">REST API, 무중단 라우팅</div>
-                        </div>
-                        <div class="tech-card">
-                            <div class="tech-k">AI Model</div>
-                            <div class="tech-v">DeepFace, TensorFlow</div>
-                            <div class="tech-d">Facenet512 512차원 벡터 추출</div>
-                        </div>
-                        <div class="tech-card">
-                            <div class="tech-k">Vector DB</div>
-                            <div class="tech-v">Pinecone</div>
-                            <div class="tech-d">코사인 유사도 기반 초고속 특징점 검색</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="arch-section" style="margin-top: 16px;">
-                    <div class="arch-title">[2. 데이터 흐름도 (Data Flow)]</div>
-                    <div class="flow-timeline">
-                        <div class="flow-step">
-                            <div class="flow-dot"></div>
-                            <div class="flow-content">
-                                <div class="flow-name">Step 1</div>
-                                <div class="flow-desc">사용자 이미지 업로드 & 프론트엔드 메타데이터(EXIF) 1차 검증</div>
-                            </div>
-                        </div>
-                        <div class="flow-step">
-                            <div class="flow-dot"></div>
-                            <div class="flow-content">
-                                <div class="flow-name">Step 2</div>
-                                <div class="flow-desc">FastAPI 서버로 이미지 전송 및 DeepFace 랜드마크 추출</div>
-                            </div>
-                        </div>
-                        <div class="flow-step">
-                            <div class="flow-dot"></div>
-                            <div class="flow-content">
-                                <div class="flow-name">Step 3</div>
-                                <div class="flow-desc">Pinecone DB에 512차원 벡터 쿼리 및 코사인 유사도(Cosine Similarity) 대조</div>
-                            </div>
-                        </div>
-                        <div class="flow-step">
-                            <div class="flow-dot"></div>
-                            <div class="flow-content">
-                                <div class="flow-name">Step 4</div>
-                                <div class="flow-desc">매칭 결과 반환 및 브라우저 기반 포렌식 리포트(PDF/Image) 생성</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- (비움) 시스템 구조는 헤더의 왼쪽 사이드바로 이동했어요 -->
             </div>
 
             <button class="primary" onclick="scanImage()">지금 바로 검사하기</button>
@@ -764,6 +780,76 @@
         </div>
         <div class="hs-footer">
             <button class="danger-btn" onclick="clearHistory()">기록 전체 삭제</button>
+        </div>
+    </div>
+
+    <!-- 시스템 구조 사이드바(오버레이) -->
+    <div id="arch-dim" onclick="closeArch()"></div>
+    <div id="arch-sidebar" aria-hidden="true">
+        <div class="as-header">
+            <h3 class="as-title">시스템 구조</h3>
+            <button class="as-close" onclick="closeArch()" aria-label="닫기">✕</button>
+        </div>
+        <div class="as-body">
+            <div class="arch-section">
+                <div class="arch-title">[1. 기술 스택 (Tech Stack)]</div>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <div class="tech-k">Frontend</div>
+                        <div class="tech-v">HTML/JS, GitHub Pages</div>
+                        <div class="tech-d">UI 및 정적 호스팅</div>
+                    </div>
+                    <div class="tech-card">
+                        <div class="tech-k">Backend API</div>
+                        <div class="tech-v">FastAPI, Python</div>
+                        <div class="tech-d">REST API, 무중단 라우팅</div>
+                    </div>
+                    <div class="tech-card">
+                        <div class="tech-k">AI Model</div>
+                        <div class="tech-v">DeepFace, TensorFlow</div>
+                        <div class="tech-d">Facenet512 512차원 벡터 추출</div>
+                    </div>
+                    <div class="tech-card">
+                        <div class="tech-k">Vector DB</div>
+                        <div class="tech-v">Pinecone</div>
+                        <div class="tech-d">코사인 유사도 기반 초고속 특징점 검색</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arch-section" style="margin-top: 16px;">
+                <div class="arch-title">[2. 데이터 흐름도 (Data Flow)]</div>
+                <div class="flow-timeline">
+                    <div class="flow-step">
+                        <div class="flow-dot"></div>
+                        <div class="flow-content">
+                            <div class="flow-name">Step 1</div>
+                            <div class="flow-desc">사용자 이미지 업로드 & 프론트엔드 메타데이터(EXIF) 1차 검증</div>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-dot"></div>
+                        <div class="flow-content">
+                            <div class="flow-name">Step 2</div>
+                            <div class="flow-desc">FastAPI 서버로 이미지 전송 및 DeepFace 랜드마크 추출</div>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-dot"></div>
+                        <div class="flow-content">
+                            <div class="flow-name">Step 3</div>
+                            <div class="flow-desc">Pinecone DB에 512차원 벡터 쿼리 및 코사인 유사도(Cosine Similarity) 대조</div>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-dot"></div>
+                        <div class="flow-content">
+                            <div class="flow-name">Step 4</div>
+                            <div class="flow-desc">매칭 결과 반환 및 브라우저 기반 포렌식 리포트(PDF/Image) 생성</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -932,6 +1018,25 @@
         function clearHistory() {
             localStorage.removeItem(HISTORY_KEY);
             renderHistory();
+        }
+
+        // 1-3. 시스템 구조(Architecture) 사이드바 로직
+        function openArch() {
+            const dim = document.getElementById('arch-dim');
+            const sidebar = document.getElementById('arch-sidebar');
+            if (!dim || !sidebar) return;
+            dim.style.display = 'block';
+            sidebar.classList.add('open');
+            sidebar.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeArch() {
+            const dim = document.getElementById('arch-dim');
+            const sidebar = document.getElementById('arch-sidebar');
+            if (!dim || !sidebar) return;
+            sidebar.classList.remove('open');
+            sidebar.setAttribute('aria-hidden', 'true');
+            setTimeout(() => { dim.style.display = 'none'; }, 280);
         }
 
         // 1-2. 신고용 리포트(미리보기/다운로드) 로직
