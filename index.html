@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FaceSwap Vibe | 딥페이크 탐지기</title>
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* 1. 디자인 시스템 (토스 스타일 & 다크모드) */
         :root {
@@ -349,6 +350,109 @@
 
         .danger-btn:hover { filter: brightness(0.98); transform: translateY(-1px); }
 
+        /* 8. 신고용 리포트 모달 */
+        #report-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            display: none;
+            z-index: 2000;
+            padding: 24px 16px;
+            box-sizing: border-box;
+        }
+
+        #report-modal .report-wrap {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            overflow: auto;
+        }
+
+        #report-modal .report-topbar {
+            width: min(820px, 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #report-modal .report-close {
+            border: none;
+            cursor: pointer;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.12);
+            color: #ffffff;
+            font-weight: 900;
+        }
+
+        #report-modal .report-close:hover { background: rgba(255,255,255,0.18); }
+
+        /* 다크모드여도 “종이”는 무조건 흰색/검정 글씨로 고정해요 */
+        .report-paper {
+            width: min(820px, 100%);
+            aspect-ratio: 1 / 1.414; /* A4 비율 */
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid rgba(0,0,0,0.18);
+            border-radius: 14px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            padding: 28px 30px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .report-paper h1 {
+            margin: 0 0 14px 0;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.3px;
+            text-align: center;
+        }
+
+        .report-paper .rp-section {
+            border-top: 1px solid rgba(0,0,0,0.10);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+
+        .report-paper .rp-row {
+            display: flex;
+            gap: 10px;
+            padding: 6px 0;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .report-paper .rp-label {
+            width: 160px;
+            font-weight: 900;
+            color: #111111;
+            flex: 0 0 auto;
+        }
+
+        .report-paper .rp-value {
+            font-weight: 700;
+            color: #000000;
+            word-break: break-word;
+        }
+
+        .report-paper .rp-conclusion {
+            margin-top: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(240,68,82,0.08);
+            border: 1px solid rgba(240,68,82,0.25);
+            font-weight: 900;
+            color: #b42318;
+        }
+
+        #btn-download-report {
+            width: min(820px, 100%);
+        }
+
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -402,6 +506,7 @@
                 <div id="status-badge" class="status-badge"></div>
                 <div id="result-text" style="font-size: 15px; font-weight: 600;"></div>
                 <div id="score-text" style="font-size: 13px; color: var(--text-sub); margin-top: 5px;"></div>
+                <button id="btn-open-report" class="danger-btn" style="display: none; margin-top: 15px;" onclick="openReportPreview()">📄 신고용 리포트 생성하기</button>
             </div>
         </div>
     </div>
@@ -418,6 +523,54 @@
         </div>
         <div class="hs-footer">
             <button class="danger-btn" onclick="clearHistory()">기록 전체 삭제</button>
+        </div>
+    </div>
+
+    <!-- 신고용 분석 리포트 모달(미리보기 + 다운로드) -->
+    <div id="report-modal" aria-hidden="true">
+        <div class="report-wrap">
+            <div class="report-topbar">
+                <button class="report-close" onclick="closeReportModal()">닫기</button>
+                <div style="flex: 1;"></div>
+            </div>
+
+            <div class="report-paper" id="report-paper">
+                <h1>분석 리포트</h1>
+
+                <div class="rp-section">
+                    <div class="rp-row">
+                        <div class="rp-label">분석 일시</div>
+                        <div class="rp-value" id="rp-time">-</div>
+                    </div>
+                    <div class="rp-row">
+                        <div class="rp-label">대상자 ID</div>
+                        <div class="rp-value" id="rp-target">-</div>
+                    </div>
+                    <div class="rp-row">
+                        <div class="rp-label">일치율(신뢰도)</div>
+                        <div class="rp-value" id="rp-score">-</div>
+                    </div>
+                </div>
+
+                <div class="rp-section">
+                    <div class="rp-row">
+                        <div class="rp-label">메타데이터 분석 결과</div>
+                        <div class="rp-value" id="rp-exif">-</div>
+                    </div>
+                </div>
+
+                <div class="rp-section">
+                    <div class="rp-row">
+                        <div class="rp-label">결론</div>
+                        <div class="rp-value">딥페이크 도용 의심</div>
+                    </div>
+                    <div class="rp-conclusion" id="rp-conclusion">
+                        본 리포트는 AI 분석 결과를 기반으로 생성된 참고 자료입니다. 필요 시 원본 증거(이미지, URL, 게시물 정보)와 함께 제출하세요.
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-download-report" class="primary" onclick="downloadReport()">⬇️ 리포트 이미지로 저장하기</button>
         </div>
     </div>
 
@@ -516,6 +669,83 @@
             renderHistory();
         }
 
+        // 1-2. 신고용 리포트(미리보기/다운로드) 로직
+        let lastReportData = null; // 마지막 “위험(일치)” 결과를 리포트에 쓰기 위해 저장해요
+
+        function closeReportModal() {
+            const modal = document.getElementById('report-modal');
+            if (!modal) return;
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function openReportPreview() {
+            // “위험 결과”가 없는데 버튼이 눌린 경우를 방어해요
+            if (!lastReportData) {
+                alert("리포트를 만들 수 있는 '위험 결과'가 없습니다.");
+                return;
+            }
+
+            const nowText = new Date().toLocaleString();
+            const exifBox = document.getElementById('exif-result');
+            let exifText = "메타데이터 분석 결과를 확인할 수 없습니다.";
+
+            // 화면에 떠 있는 EXIF 박스의 상태 텍스트를 읽어와요
+            if (exifBox && exifBox.style.display !== 'none') {
+                const hint = exifBox.querySelector('.exif-hint');
+                const hintText = hint ? hint.textContent.trim() : '';
+
+                // 상세 항목(리스트)이 있으면 함께 붙여서 문서에 넣어줘요
+                const lis = Array.from(exifBox.querySelectorAll('li')).map(li => li.textContent.trim()).filter(Boolean);
+                if (lis.length) {
+                    exifText = `${hintText || '원본 데이터가 존재합니다.'}\n- ${lis.join('\n- ')}`;
+                } else if (hintText) {
+                    exifText = hintText;
+                } else {
+                    exifText = "메타데이터가 확인되지 않습니다.";
+                }
+            }
+
+            // 문서 템플릿에 값을 채워요
+            document.getElementById('rp-time').textContent = nowText;
+            document.getElementById('rp-target').textContent = lastReportData.targetId || '-';
+            document.getElementById('rp-score').textContent =
+                (typeof lastReportData.score === 'number')
+                    ? `${(lastReportData.score * 100).toFixed(2)}%`
+                    : '-';
+
+            // 줄바꿈이 보이도록 \n을 <br>로 바꿔서 넣어요
+            document.getElementById('rp-exif').innerHTML =
+                exifText.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+
+            const modal = document.getElementById('report-modal');
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        async function downloadReport() {
+            const paper = document.getElementById('report-paper');
+            if (!paper) return;
+
+            try {
+                // 종이 영역만 캡처해서 이미지로 만들어요
+                const canvas = await html2canvas(paper, {
+                    backgroundColor: '#ffffff',
+                    scale: 2
+                });
+
+                const dataUrl = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = 'deepfake_report.png';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (e) {
+                alert("리포트 저장에 실패했습니다. 다시 시도해 주세요.");
+            }
+        }
+
         function switchTab(method) {
             currentScanMethod = method;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -561,6 +791,9 @@
             const resultArea = document.getElementById('result-area');
             const loaderContainer = document.getElementById('loader-container');
             const loaderText = document.getElementById('loader-text');
+            const reportBtn = document.getElementById('btn-open-report');
+            if (reportBtn) reportBtn.style.display = 'none'; // 기본은 숨김(안전/에러/초기 상태)
+            lastReportData = null; // 매 검사마다 초기화해요
             
             const formData = new FormData();
             if (currentScanMethod === 'upload') {
@@ -609,6 +842,7 @@
                     badge.style.color = "#856404";
                     text.innerText = data.detail.message || "알 수 없는 오류가 발생했습니다.";
                     scoreDisplay.innerText = "다른 사진으로 다시 시도해 주세요.";
+                    if (reportBtn) reportBtn.style.display = 'none';
                     
                     // ✅ 결과 표시 직후: 검사 기록 저장(에러)
                     addHistoryEntry({
@@ -628,6 +862,8 @@
                     badge.style.color = "#f04452";
                     text.innerText = `등록된 피해자(${data.matches[0].id})와 유사합니다.`;
                     scoreDisplay.innerText = `분석 신뢰도: ${(data.matches[0].score * 100).toFixed(2)}%`;
+                    if (reportBtn) reportBtn.style.display = 'block'; // 위험 결과일 때만 버튼을 보여줘요
+                    lastReportData = { targetId: data.matches[0].id, score: data.matches[0].score };
 
                     // ✅ 결과 표시 직후: 검사 기록 저장(위험)
                     addHistoryEntry({
@@ -643,6 +879,7 @@
                     badge.style.color = "#3182f6";
                     text.innerText = "데이터베이스에 등록된 인물이 아닙니다.";
                     scoreDisplay.innerText = "";
+                    if (reportBtn) reportBtn.style.display = 'none';
 
                     // ✅ 결과 표시 직후: 검사 기록 저장(안전)
                     addHistoryEntry({
@@ -657,6 +894,7 @@
                 clearInterval(loadingInterval);
                 loaderContainer.style.display = 'none';
                 alert("서버와 통신 중 문제가 발생했습니다.");
+                if (reportBtn) reportBtn.style.display = 'none';
 
                 // ✅ 경고 표시 직후: 검사 기록 저장(통신 오류)
                 addHistoryEntry({
