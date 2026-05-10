@@ -6,3 +6,4 @@ pinecone
 tensorflow-cpu
 tf-keras
 deepface
+opencv-python-headless
